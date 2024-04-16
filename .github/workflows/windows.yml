@@ -202,6 +202,12 @@ jobs:
         run: |
           pacman -S --noconfirm --needed mingw-w64-x86_64-gcc make mingw-w64-x86_64-make cmake mingw-w64-x86_64-cmake glib2-devel glib2-docs mingw-w64-x86_64-gtk3 mingw-w64-x86_64-SDL2 mingw-w64-x86_64-icu mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman python-setuptools base-devel mingw-w64-x86_64-toolchain python ninja git
 
+      - name: list pkg-config for glib2
+        run: |
+          which pkg-config
+          pkg-config --cflags glib-2.0
+          pkg-config --libs glib-2.0
+
       - name: check if split program is cached
         run: |
           export MSYS=winsymlinks:native
