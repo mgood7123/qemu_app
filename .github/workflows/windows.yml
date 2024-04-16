@@ -200,7 +200,7 @@ jobs:
 
       - name: install qemu deps
         run: |
-          pacman -S --noconfirm --needed gcc make mingw-w64-x86_64-make cmake mingw-w64-x86_64-cmake glib2-devel glib2-docs mingw-w64-x86_64-gtk3 mingw-w64-x86_64-SDL2 mingw-w64-x86_64-icu mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman python-setup-tools base-devel mingw-w64-x86_64-toolchain python ninja git
+          pacman -S --noconfirm --needed gcc make mingw-w64-x86_64-make cmake mingw-w64-x86_64-cmake glib2-devel glib2-docs mingw-w64-x86_64-gtk3 mingw-w64-x86_64-SDL2 mingw-w64-x86_64-icu mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman python-setuptools base-devel mingw-w64-x86_64-toolchain python ninja git
 
       - name: check if split program is cached
         run: |
