@@ -194,6 +194,10 @@ jobs:
           update: true
           path-type: strict
 
+      - name: list
+        run: |
+          ls -l $(cygpath -w /)usr/lib/*msys*
+
       - name: update packages
         run: |
           pacman -Sy
