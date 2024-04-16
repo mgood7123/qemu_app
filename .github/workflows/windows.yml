@@ -196,7 +196,7 @@ jobs:
 
       - name: list
         run: |
-          ls -l $(cygpath -w /)usr/lib/*msys*
+          ls -l $(cygpath -w /)usr/lib | grep msys
 
       - name: update packages
         run: |
