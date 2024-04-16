@@ -238,6 +238,7 @@ jobs:
           cmake --build BUILD_RELEASE_GCC
 
       - name: cmake install qemu - Release
+        if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
           export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
@@ -245,6 +246,7 @@ jobs:
           cmake --install BUILD_RELEASE_GCC
 
       - name: archive build directory
+        if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
 
@@ -257,6 +259,7 @@ jobs:
           ./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
 
       - name: list files
+        if: success() # if we cancel during the upload, wait for it to complete
         run: |
           ls -l
       
