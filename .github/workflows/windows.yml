@@ -196,7 +196,11 @@ jobs:
 
       - name: list
         run: |
-          ls -l $(cygpath -w /)usr/lib | grep msys
+          ls -l $(cygpath -w /)
+
+      - name: list
+        run: |
+          ls -l $(cygpath -w /)usr/lib
 
       - name: update packages
         run: |
