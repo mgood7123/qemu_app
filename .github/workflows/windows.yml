@@ -198,41 +198,17 @@ jobs:
         run: |
           pacman -Sy
 
-      - name: install git
+      - name: install pacboy
         run: |
-          pacman -S --noconfirm --needed git
+          pacman -Syu --noconfirm --needed pactoys
 
-      - name: install gcc
+      - name: update packages
         run: |
-          pacman -S --noconfirm --needed gcc
+          pacboy -Sy
 
       - name: install qemu deps
         run: |
-          pacman -S --noconfirm --needed make
-
-      - name: install autotools
-        run: |
-          pacman -S --noconfirm --needed autotools
-
-      - name: install patch
-        run: |
-          pacman -S --noconfirm --needed patch
-
-      - name: install gperf
-        run: |
-          pacman -S --noconfirm --needed gperf
-
-      - name: install groff
-        run: |
-          pacman -S --noconfirm --needed groff
-
-      - name: install gettext
-        run: |
-          pacman -S --noconfirm --needed gettext
-
-      - name: install texinfo
-        run: |
-          pacman -S --noconfirm --needed texinfo
+          pacboy -S --noconfirm --needed gcc make:p cmake:p glib2-devel glib2-docs gtk3:p SDL2:p icu:p glib2:p pixman:p python-setup-tools base-devel toolchain:p python ninja git
 
       - name: check if split program is cached
         run: |
