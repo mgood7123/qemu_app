@@ -233,15 +233,20 @@ jobs:
         run: |
           export MSYS=winsymlinks:native
           export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
+          #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          #cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
+          cd qemu
+          mkdir BUILD_ROOT
+          ./configure.sh --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
 
       - name: cmake build qemu - Release
         run: |
           export MSYS=winsymlinks:native
           export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
           export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          cmake --build BUILD_RELEASE_GCC
+          #cmake --build BUILD_RELEASE_GCC
+          cd qemu
+          make
 
       - name: cmake install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
@@ -249,7 +254,8 @@ jobs:
           export MSYS=winsymlinks:native
           export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
           export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          cmake --install BUILD_RELEASE_GCC
+          #cmake --install BUILD_RELEASE_GCC
+          make install
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
@@ -258,11 +264,15 @@ jobs:
 
           # 750 mb
           #
-          ./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
+          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
 
           # 750 mb
           #
-          ./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
+          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
+
+          # 750 mb
+          #
+          ./split_exe/split.exe --split -r qemu/ROOTFS --name rootfs --size 750000000
 
       - name: list files
         if: success() # if we cancel during the upload, wait for it to complete
@@ -282,5 +292,4 @@ jobs:
           replacesArtifacts: true
           removeArtifacts: true
           artifacts: |
-            ./build.split.*
             ./rootfs.split.*
