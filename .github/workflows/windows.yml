@@ -211,11 +211,16 @@ jobs:
           # https://github.com/qemu/qemu/blob/master/.gitlab-ci.d/windows.yml#L84
           pacman -S --noconfirm --needed pactoys
           pacman -S --noconfirm --needed bison flex git
-          pacboy -S --noconfirm --needed cmake gcc:p meson:p autotools:p ninja:p python:p python-sphinx:p python-sphinx_rtd_theme:p tools-git:p angleproject:p capstone:p curl:p cyrus-sasl:p dtc:p expat:p fontconfig:p freetype:p fribidi:p gcc-libs:p gdk-pixbuf2:p gettext:p glib2:p gmp:p gnutls:p graphite2:p gst-plugins-base:p gstreamer:p gtk3:p harfbuzz:p jbigkit:p lerc:p libc++:p libdatrie:p libdeflate:p libepoxy:p libffi:p libiconv:p libidn2:p libjpeg-turbo:p libnfs:p libpng:p libpsl:p libslirp:p libssh:p libssh2:p libtasn1:p libthai:p libtiff:p libunistring:p libunwind:p libusb:p libwebp:p libwinpthread-git:p lz4:p lzo2:p nettle:p openssl:p opus:p orc:p p11-kit:p pango:p pixman:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p xz:p zlib:p zstd:p brotli:p bzip2:p nghttp2 diffutils grep make sed:p binutils:p capstone:p curl:p cyrus-sasl:p dtc:p gcc:p glib2:p gnutls:p gtk3:p libgcrypt:p libjpeg-turbo:p libnfs:p libpng:p libssh:p libtasn1:p libusb:p lzo2:p nettle:p ninja:p pixman:p pkgconf:p python:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p zstd:p
+          pacboy -S --noconfirm --needed makefile:p cmake:p gcc:p meson:p autotools:p ninja:p python:p python-sphinx:p python-sphinx_rtd_theme:p tools-git:p angleproject:p capstone:p curl:p cyrus-sasl:p dtc:p expat:p fontconfig:p freetype:p fribidi:p gcc-libs:p gdk-pixbuf2:p gettext:p glib2:p gmp:p gnutls:p graphite2:p gst-plugins-base:p gstreamer:p gtk3:p harfbuzz:p jbigkit:p lerc:p libc++:p libdatrie:p libdeflate:p libepoxy:p libffi:p libiconv:p libidn2:p libjpeg-turbo:p libnfs:p libpng:p libpsl:p libslirp:p libssh:p libssh2:p libtasn1:p libthai:p libtiff:p libunistring:p libunwind:p libusb:p libwebp:p libwinpthread-git:p lz4:p lzo2:p nettle:p openssl:p opus:p orc:p p11-kit:p pango:p pixman:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p xz:p zlib:p zstd:p brotli:p bzip2:p nghttp2 diffutils grep make sed:p binutils:p capstone:p curl:p cyrus-sasl:p dtc:p gcc:p glib2:p gnutls:p gtk3:p libgcrypt:p libjpeg-turbo:p libnfs:p libpng:p libssh:p libtasn1:p libusb:p lzo2:p nettle:p ninja:p pixman:p pkgconf:p python:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p zstd:p
 
       - name: verify /mingw64/bin/gcc.exe exists
         run: |
           ls -l /mingw64/bin/gcc.exe
+
+      - name: verify sed works how qemu expects
+        run: |
+          which sed
+          printf "%s" "$e" | sed -e 's/\([\"]\)/\\\1/g'
 
       - name: check if split program is cached
         run: |
@@ -233,7 +238,6 @@ jobs:
       - name: cmake configure qemu - Release
         run: |
           export MSYS=winsymlinks:native
-          export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
           #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
           #cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
           cd qemu
@@ -243,7 +247,6 @@ jobs:
       - name: cmake build qemu - Release
         run: |
           export MSYS=winsymlinks:native
-          export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
           export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
           #cmake --build BUILD_RELEASE_GCC
           cd qemu
@@ -253,7 +256,6 @@ jobs:
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
-          export ACLOCAL_PATH=D:/a/_temp/msys64/usr/share/aclocal
           export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
           #cmake --install BUILD_RELEASE_GCC
           make install
