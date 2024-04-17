@@ -238,12 +238,15 @@ jobs:
           mkdir BUILD || true
           mkdir BUILD/BUILD_ROOT || true
           cd BUILD
+          ls -l
           ../configure --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
 
       - name: cmake build qemu - Release
         run: |
           export MSYS=winsymlinks:native
           cd qemu/BUILD
+          ls -l
+          cat -n Makefile
           make -j $(nproc)
 
       - name: cmake install qemu - Release
