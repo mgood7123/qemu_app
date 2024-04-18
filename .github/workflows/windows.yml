@@ -228,12 +228,8 @@ jobs:
           chmod +x ./try_get_release.sh
           ./try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split.exe.tar
 
-      - name: check if build directory is cached
-        run: |
-          export MSYS=winsymlinks:native
-
-          URL=https://github.com/mgood7123/qemu_app/releases/download/storage--qemu--windows--release/build.split.map
-          ./split_exe/split.exe --join -r $URL --out BUILD_RELEASE_GCC || true
+      # there is no use in caching the build directory since ../configure will cause a full rebuild
+      # and we dont know how to detect an already configured/built build directory
 
       - name: restore symlinks
         run: |
@@ -264,24 +260,37 @@ jobs:
           ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-38-prep.sh
           ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-rawhide-prep.sh
 
-      - name: cmake configure qemu - Release
-        run: |
-          export MSYS=winsymlinks:native
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
+       - name: cmake configure qemu - Release
+         run: |
+           export MSYS=winsymlinks:native
+           cd qemu
+           mkdir BUILD || true
+           mkdir BUILD/BUILD_ROOT || true
+           cd BUILD
+           ls -l
+           ../configure --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
+           #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+           #cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
 
-      - name: cmake build qemu - Release
-        run: |
-          export MSYS=winsymlinks:native
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          cmake --build BUILD_RELEASE_GCC
+       - name: cmake build qemu - Release
+         run: |
+           export MSYS=winsymlinks:native
+           cd qemu/BUILD
+           ls -l
+           cat -n Makefile
+           make -j $(nproc)
+           #ninja
+           #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+           #cmake --build BUILD_RELEASE_GCC
 
-      - name: cmake install qemu - Release
-        if: success() # if we cancel during the upload, wait for it to complete
-        run: |
-          export MSYS=winsymlinks:native
-          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          cmake --install BUILD_RELEASE_GCC
+       - name: cmake install qemu - Release
+         if: success() # if we cancel during the upload, wait for it to complete
+         run: |
+           export MSYS=winsymlinks:native
+           cd qemu/BUILD
+           make install
+           #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+           #cmake --install BUILD_RELEASE_GCC
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
@@ -290,11 +299,16 @@ jobs:
 
           # 750 mb
           #
-          ./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
+          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
 
           # 750 mb
           #
-          ./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
+          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
+
+          # 750 mb
+          #
+          ./split_exe/split.exe --split -r qemu/BUILD/BUILD_ROOT --name rootfs --size 750000000
+          ./split_exe/split.exe --split -r qemu/BUILD --name build --size 750000000
 
       - name: list files
         if: success() # if we cancel during the upload, wait for it to complete
