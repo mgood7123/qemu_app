@@ -228,34 +228,60 @@ jobs:
           chmod +x ./try_get_release.sh
           ./try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split.exe.tar
 
-      # there is no use in caching the build directory since ../configure will cause a full rebuild
-      # and we dont know how to detect an already configured/built build directory
+      - name: check if build directory is cached
+        run: |
+          export MSYS=winsymlinks:native
+
+          URL=https://github.com/mgood7123/qemu_app/releases/download/storage--qemu--windows--release/build.split.map
+          ./split_exe/split.exe --join -r $URL --out BUILD_RELEASE_GCC || true
+
+      - name: restore symlinks
+        run: |
+          export MSYS=winsymlinks:native
+          ln -s /opt/X11/include qemu/roms/edk2/EmulatorPkg/Unix/Host/X11IncludeHack
+          ln -s build-ubuntu-latest.sh qemu/roms/skiboot/opal-ci/build-debian-unstable.sh
+          ln -s build-fedora33.sh qemu/roms/skiboot/opal-ci/build-fedora-rawhide.sh
+          ln -s zynq-zc770-xm011 qemu/roms/u-boot/board/xilinx/zynq/zynq-cse-nand
+          ln -s zynqmp-zcu100-revC qemu/roms/u-boot/board/xilinx/zynqmp/avnet-ultra96-rev1
+          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-g-a2197-00-revA
+          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-m-a2197-01-revA
+          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-m-a2197-03-revA
+          ln -s zynqmp-zcu102-rev1.0 qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini
+          ln -s zynqmp-zcu100-revC qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini-emmc0
+          ln -s zynqmp-zcu102-rev1.0 qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini-emmc1
+          ln -s zynqmp-zcu102-rev1.0 qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini-qspi
+          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-p-a2197-00-revA
+          ln -s zynqmp-zcu104-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-zcu104-revC
+          ln -s linux/ctype.h qemu/roms/u-boot/include/ctype.h
+          ln -s main.py qemu/roms/u-boot/tools/binman/binman
+          ln -s main.py qemu/roms/u-boot/tools/dtoc/dtoc
+          ln -s microcode-tool.py qemu/roms/u-boot/tools/microcode-tool
+          ln -s main.py qemu/roms/u-boot/tools/patman/patman
+          ln -s centos-stream-8-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/almalinux-8-prep.sh
+          ln -s alpine-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/alpine-317-prep.sh
+          ln -s alpine-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/alpine-edge-prep.sh
+          ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-37-prep.sh
+          ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-38-prep.sh
+          ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-rawhide-prep.sh
 
       - name: cmake configure qemu - Release
         run: |
           export MSYS=winsymlinks:native
-          cd qemu
-          mkdir BUILD || true
-          mkdir BUILD/BUILD_ROOT || true
-          cd BUILD
-          ls -l
-          ../configure --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
 
       - name: cmake build qemu - Release
         run: |
           export MSYS=winsymlinks:native
-          cd qemu/BUILD
-          ls -l
-          cat -n Makefile
-          #make -j $(nproc)
-          ninja
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          cmake --build BUILD_RELEASE_GCC
 
       - name: cmake install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
-          cd qemu/BUILD
-          make install
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          cmake --install BUILD_RELEASE_GCC
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
@@ -264,16 +290,11 @@ jobs:
 
           # 750 mb
           #
-          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
+          ./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
 
           # 750 mb
           #
-          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
-
-          # 750 mb
-          #
-          ./split_exe/split.exe --split -r qemu/BUILD/BUILD_ROOT --name rootfs --size 750000000
-          ./split_exe/split.exe --split -r qemu/BUILD --name build --size 750000000
+          ./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
 
       - name: list files
         if: success() # if we cancel during the upload, wait for it to complete
