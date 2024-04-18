@@ -247,7 +247,8 @@ jobs:
           cd qemu/BUILD
           ls -l
           cat -n Makefile
-          make -j $(nproc)
+          #make -j $(nproc)
+          ninja
 
       - name: cmake install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
