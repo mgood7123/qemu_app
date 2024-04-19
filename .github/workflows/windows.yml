@@ -57,7 +57,6 @@ jobs:
         with:
           ref: ${{needs.should_run.outputs.output1}}
           submodules: recursive
-        shell: msys2 {0}
 
       - name: '${{ matrix.icon }} Setup MSYS2'
         uses: msys2/setup-msys2@v2
@@ -65,7 +64,6 @@ jobs:
           msystem: ${{matrix.sys}}
           update: true
           path-type: strict
-        shell: msys2 {0}
 
       - name: update packages
         run: |
@@ -152,7 +150,6 @@ jobs:
             ./split/split_rootfs.tar.sha512
             ./split.exe.tar
             ./split.exe.tar.sha512
-        shell: msys2 {0}
 
   build_qemu:
     needs: msys2_build_split
@@ -325,4 +322,3 @@ jobs:
           artifacts: |
             ./rootfs.split.*
             ./build.split.*
-        shell: wsl-bash_Ubuntu-22.04 {0}
