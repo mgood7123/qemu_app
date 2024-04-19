@@ -10,7 +10,7 @@ on:
 
 defaults:
   run:
-    shell: wsl-bash_Ubuntu-22.04 {0}
+    shell: wsl-bash {0}
 
 # each job runs under a NEW image
 jobs:
@@ -177,13 +177,27 @@ jobs:
           ref: ${{needs.should_run.outputs.output1}}
           submodules: recursive
 
+      - name: install qemu
+        run: |
+          echo "downloading"
+          curl -L https://qemu.weilnetz.de/w64/2024/qemu-w64-setup-20240411.exe -O
+          echo "calling --help"
+          ./qemu-w64-setup-20240411.exe --help || true
+          echo "calling"
+          qemu-w64-setup-20240411.exe
+        shell: bash {0}
+
       - name: Setup WSL2
         uses: Vampire/setup-wsl@v3
+        with:
+          uses-cache: false
+          distribution: Ubuntu-22.04
+          set-as-default: true
 
       - name: update packages
         run: |
           apt update
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: install qemu deps
         run: |
@@ -191,7 +205,7 @@ jobs:
           pacman -S --noconfirm --needed pactoys
           pacman -S --noconfirm --needed bison flex git
           pacboy -S --noconfirm --needed make:p cmake:p gcc:p meson:p autotools:p ninja:p python:p python-sphinx:p python-sphinx_rtd_theme:p tools-git:p angleproject:p capstone:p curl:p cyrus-sasl:p dtc:p expat:p fontconfig:p freetype:p fribidi:p gcc-libs:p gdk-pixbuf2:p gettext:p glib2:p gmp:p gnutls:p graphite2:p gst-plugins-base:p gstreamer:p gtk3:p harfbuzz:p jbigkit:p lerc:p libc++:p libdatrie:p libdeflate:p libepoxy:p libffi:p libiconv:p libidn2:p libjpeg-turbo:p libnfs:p libpng:p libpsl:p libslirp:p libssh:p libssh2:p libtasn1:p libthai:p libtiff:p libunistring:p libunwind:p libusb:p libwebp:p libwinpthread-git:p lz4:p lzo2:p nettle:p openssl:p opus:p orc:p p11-kit:p pango:p pixman:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p xz:p zlib:p zstd:p brotli:p bzip2:p nghttp2 diffutils grep make sed:p binutils:p capstone:p curl:p cyrus-sasl:p dtc:p gcc:p glib2:p gnutls:p gtk3:p libgcrypt:p libjpeg-turbo:p libnfs:p libpng:p libssh:p libtasn1:p libusb:p lzo2:p nettle:p ninja:p pixman:p pkgconf:p python:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p zstd:p
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: restore symlinks
         run: |
@@ -221,14 +235,14 @@ jobs:
           ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-37-prep.sh
           ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-38-prep.sh
           ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-rawhide-prep.sh
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: check if split program is cached
         run: |
           export MSYS=winsymlinks:native
           chmod +x ./try_get_release.sh
           ./try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split.exe.tar
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: check if build directory is cached
         run: |
@@ -236,14 +250,14 @@ jobs:
 
           URL=https://github.com/mgood7123/qemu_app/releases/download/storage--qemu--windows--release/build.split.map
           ./split_exe/split.exe --join -r $URL --out BUILD_RELEASE_GCC || true
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: check if split program is cached
         run: |
           export MSYS=winsymlinks:native
           chmod +x ./try_get_release.sh
           ./try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split.exe.tar
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       # there is no use in caching the build directory since ../configure will cause a full rebuild
       # and we dont know how to detect an already configured/built build directory
@@ -259,7 +273,7 @@ jobs:
           cd BUILD
           ls -l
           ../configure --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: cmake build qemu - Release
         run: |
@@ -270,7 +284,7 @@ jobs:
           ls -l
           cat -n Makefile
           make --trace -j $(nproc)
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: cmake install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
@@ -280,7 +294,7 @@ jobs:
           #cmake --install BUILD_RELEASE_GCC
           cd qemu/BUILD
           make install
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
@@ -299,13 +313,13 @@ jobs:
           #
           ./split_exe/split.exe --split -r qemu/BUILD/BUILD_ROOT --name rootfs --size 750000000
           ./split_exe/split.exe --split -r qemu/BUILD --name build --size 750000000
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
 
       - name: list files
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           ls -l
-        shell: wsl-bash_Ubuntu-22.04 {0}
+        shell: wsl-bash {0}
       
       - name: upload build directory
         if: success() # if we cancel during the upload, wait for it to complete
