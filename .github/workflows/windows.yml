@@ -181,7 +181,7 @@ jobs:
           submodules: recursive
 
       - name: Setup WSL2
-      - uses: Vampire/setup-wsl@v3
+        uses: Vampire/setup-wsl@v3
 
       - name: update packages
         run: |
