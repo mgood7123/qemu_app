@@ -210,7 +210,7 @@ jobs:
           cd alpine
           ./exe.sh mkdir qemu
           ./push.sh ../CMakeLists.txt qemu
-          ./push.sh ../build_root.sh qemu
+          ./push.sh ../build_root.cmake qemu
           ./push.sh ../restore_symlinks.sh qemu
           ./push.sh ../try_get_release.sh qemu
           ./push.sh ../split qemu
