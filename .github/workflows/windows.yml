@@ -208,12 +208,15 @@ jobs:
       - name: copy qemu to alpine
         run: |
           cd alpine
-          ./push.sh CMakeLists.txt
-          ./push.sh build_root.sh
-          ./push.sh restore_symlinks.sh
-          ./push.sh try_get_release.sh
-          ./push.sh split
+          ./exe.sh mkdir qemu
+          ./push.sh ../CMakeLists.txt qemu
+          ./push.sh ../build_root.sh qemu
+          ./push.sh ../restore_symlinks.sh qemu
+          ./push.sh ../try_get_release.sh qemu
+          ./push.sh ../split qemu
+          ./push.sh ../qemu qemu
           ./exe.sh ls -l
+          ./exe.sh ls -l qemu
 
       - name: powerff alpine
         run: |
