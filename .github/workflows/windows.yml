@@ -10,7 +10,7 @@ on:
 
 defaults:
   run:
-    shell: wsl-bash {0}
+    shell: msys2 {0}
 
 # each job runs under a NEW image
 jobs:
@@ -68,12 +68,10 @@ jobs:
       - name: update packages
         run: |
           pacman -Sy
-        shell: msys2 {0}
 
       - name: install packages
         run: |
-          pacman -S --noconfirm --needed git gcc make cmake autotools
-        shell: msys2 {0}
+          pacman -S --noconfirm --needed git gcc make cmake ninja python autotools
 
 #'sh' '-c' 'export PKG_CONFIG_PATH="$(pwd)/ROOTFS/lib/pkgconfig:$(pwd)/ROOTFS/share/pkgconfig:$PKG_CONFIG_PATH" ; export CC="/usr/bin/clang.exe" ; export LDFLAGS="-L$(pwd)/ROOTFS/lib" ; export CFLAGS="-I$(pwd)/ROOTFS/include -L$(pwd)/ROOTFS/lib   -g0 -O3" ; export CXX="/usr/bin/clang++.exe" ; export CXXFLAGS="-I$(pwd)/ROOTFS/include -L$(pwd)/ROOTFS/lib   -g0 -O3" ; sh ./configure   --prefix=$(pwd)/ROOTFS --enable-static=yes --enable-shared=no'
 #'sh' '-c' 'export PKG_CONFIG_PATH="$(pwd)/ROOTFS/lib/pkgconfig:$(pwd)/ROOTFS/share/pkgconfig:$PKG_CONFIG_PATH" ; export CC="/usr/bin/clang.exe" ; export LDFLAGS="-L$(pwd)/ROOTFS/lib" ; export CFLAGS="-I$(pwd)/ROOTFS/include -L$(pwd)/ROOTFS/lib   -g0 -O3" ; export CXX="/usr/bin/clang++.exe" ; export CXXFLAGS="-I$(pwd)/ROOTFS/include -L$(pwd)/ROOTFS/lib   -g0 -O3" ; make --trace'
@@ -84,7 +82,6 @@ jobs:
           cd split
           chmod +x ../try_get_release.sh
           ../try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split_build.tar || true
-        shell: msys2 {0}
 
       - name: build split program
         run: |
@@ -94,7 +91,6 @@ jobs:
           cd split
           chmod +x make.sh
           ./make.sh
-        shell: msys2 {0}
 
       - name: archive split build directory
         run: |
@@ -124,12 +120,10 @@ jobs:
           echo "checking if packaged split.exe works"
           ./split_exe/split.exe
           echo "packaged split.exe works"
-        shell: msys2 {0}
 
       - name: list files
         run: |
           ls -l
-        shell: msys2 {0}
       
       - name: upload split build directory
         if: success() # if we cancel during the upload, wait for it to complete
@@ -177,72 +171,71 @@ jobs:
           ref: ${{needs.should_run.outputs.output1}}
           submodules: recursive
 
-      - name: install qemu
-        run: |
-          echo "downloading"
-          curl -L https://qemu.weilnetz.de/w64/2024/qemu-w64-setup-20240411.exe -O
-          echo "calling --help"
-          ./qemu-w64-setup-20240411.exe --help || true
-          echo "calling"
-          qemu-w64-setup-20240411.exe
-        shell: bash {0}
-
-      - name: Setup WSL2
-        uses: Vampire/setup-wsl@v3
+      - name: '${{ matrix.icon }} Setup MSYS2'
+        uses: msys2/setup-msys2@v2
         with:
-          uses-cache: false
-          distribution: Ubuntu-22.04
-          set-as-default: true
+          msystem: ${{matrix.sys}}
+          update: true
+          path-type: strict
 
       - name: update packages
         run: |
-          apt update
-        shell: wsl-bash {0}
-
-      - name: install qemu deps
-        run: |
-          # https://github.com/qemu/qemu/blob/master/.gitlab-ci.d/windows.yml#L84
-          pacman -S --noconfirm --needed pactoys
-          pacman -S --noconfirm --needed bison flex git
-          pacboy -S --noconfirm --needed make:p cmake:p gcc:p meson:p autotools:p ninja:p python:p python-sphinx:p python-sphinx_rtd_theme:p tools-git:p angleproject:p capstone:p curl:p cyrus-sasl:p dtc:p expat:p fontconfig:p freetype:p fribidi:p gcc-libs:p gdk-pixbuf2:p gettext:p glib2:p gmp:p gnutls:p graphite2:p gst-plugins-base:p gstreamer:p gtk3:p harfbuzz:p jbigkit:p lerc:p libc++:p libdatrie:p libdeflate:p libepoxy:p libffi:p libiconv:p libidn2:p libjpeg-turbo:p libnfs:p libpng:p libpsl:p libslirp:p libssh:p libssh2:p libtasn1:p libthai:p libtiff:p libunistring:p libunwind:p libusb:p libwebp:p libwinpthread-git:p lz4:p lzo2:p nettle:p openssl:p opus:p orc:p p11-kit:p pango:p pixman:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p xz:p zlib:p zstd:p brotli:p bzip2:p nghttp2 diffutils grep make sed:p binutils:p capstone:p curl:p cyrus-sasl:p dtc:p gcc:p glib2:p gnutls:p gtk3:p libgcrypt:p libjpeg-turbo:p libnfs:p libpng:p libssh:p libtasn1:p libusb:p lzo2:p nettle:p ninja:p pixman:p pkgconf:p python:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p zstd:p
-        shell: wsl-bash {0}
-
-      - name: restore symlinks
-        run: |
-          export MSYS=winsymlinks:native
-          ln -s /opt/X11/include qemu/roms/edk2/EmulatorPkg/Unix/Host/X11IncludeHack
-          ln -s build-ubuntu-latest.sh qemu/roms/skiboot/opal-ci/build-debian-unstable.sh
-          ln -s build-fedora33.sh qemu/roms/skiboot/opal-ci/build-fedora-rawhide.sh
-          ln -s zynq-zc770-xm011 qemu/roms/u-boot/board/xilinx/zynq/zynq-cse-nand
-          ln -s zynqmp-zcu100-revC qemu/roms/u-boot/board/xilinx/zynqmp/avnet-ultra96-rev1
-          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-g-a2197-00-revA
-          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-m-a2197-01-revA
-          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-m-a2197-03-revA
-          ln -s zynqmp-zcu102-rev1.0 qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini
-          ln -s zynqmp-zcu100-revC qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini-emmc0
-          ln -s zynqmp-zcu102-rev1.0 qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini-emmc1
-          ln -s zynqmp-zcu102-rev1.0 qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-mini-qspi
-          ln -s zynqmp-a2197-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-p-a2197-00-revA
-          ln -s zynqmp-zcu104-revA qemu/roms/u-boot/board/xilinx/zynqmp/zynqmp-zcu104-revC
-          ln -s linux/ctype.h qemu/roms/u-boot/include/ctype.h
-          ln -s main.py qemu/roms/u-boot/tools/binman/binman
-          ln -s main.py qemu/roms/u-boot/tools/dtoc/dtoc
-          ln -s microcode-tool.py qemu/roms/u-boot/tools/microcode-tool
-          ln -s main.py qemu/roms/u-boot/tools/patman/patman
-          ln -s centos-stream-8-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/almalinux-8-prep.sh
-          ln -s alpine-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/alpine-317-prep.sh
-          ln -s alpine-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/alpine-edge-prep.sh
-          ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-37-prep.sh
-          ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-38-prep.sh
-          ln -s fedora-prep.sh qemu/tests/lcitool/libvirt-ci/ci/gitlab/all_mappings_prep_env/fedora-rawhide-prep.sh
-        shell: wsl-bash {0}
+          pacman -Sy
 
       - name: check if split program is cached
         run: |
           export MSYS=winsymlinks:native
           chmod +x ./try_get_release.sh
           ./try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split.exe.tar
-        shell: wsl-bash {0}
+
+      - name: unpack alpine
+        run: |
+          ./split_exe/split.exe --join -r alpine.split/alpine.split.map --out alpine
+          cd alpine
+          ls -l
+          chmod -v +x *.sh
+
+      - name: install qemu
+        run: |
+          pacman -S --noconfirm --needed pactoys sshpass
+          pacboy -S --noconfirm --needed qemu:p qemu-common:p qemu-guest-agent:p qemu-image-util:p
+
+      - name: poweron alpine
+        run: |
+          cd alpine
+          . ./poweron_alpine.sh
+
+      - name: copy qemu to alpine
+        run: |
+          cd alpine
+          ./push.sh CMakeLists.txt
+          ./push.sh build_root.sh
+          ./push.sh restore_symlinks.sh
+          ./push.sh try_get_release.sh
+          ./push.sh split
+          ./exe.sh ls -l
+
+      - name: powerff alpine
+        run: |
+          cd alpine
+          ./poweroff_alpine.sh
+
+      - name: see if we got here
+        run: |
+          false
+
+      - name: install qemu deps
+        run: |
+          # https://github.com/qemu/qemu/blob/master/.gitlab-ci.d/windows.yml#L84
+          #pacman -S --noconfirm --needed pactoys
+          #pacman -S --noconfirm --needed bison flex git
+          #pacboy -S --noconfirm --needed make:p cmake:p gcc:p meson:p autotools:p ninja:p python:p python-sphinx:p python-sphinx_rtd_theme:p tools-git:p angleproject:p capstone:p curl:p cyrus-sasl:p dtc:p expat:p fontconfig:p freetype:p fribidi:p gcc-libs:p gdk-pixbuf2:p gettext:p glib2:p gmp:p gnutls:p graphite2:p gst-plugins-base:p gstreamer:p gtk3:p harfbuzz:p jbigkit:p lerc:p libc++:p libdatrie:p libdeflate:p libepoxy:p libffi:p libiconv:p libidn2:p libjpeg-turbo:p libnfs:p libpng:p libpsl:p libslirp:p libssh:p libssh2:p libtasn1:p libthai:p libtiff:p libunistring:p libunwind:p libusb:p libwebp:p libwinpthread-git:p lz4:p lzo2:p nettle:p openssl:p opus:p orc:p p11-kit:p pango:p pixman:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p xz:p zlib:p zstd:p brotli:p bzip2:p nghttp2 diffutils grep make sed:p binutils:p capstone:p curl:p cyrus-sasl:p dtc:p gcc:p glib2:p gnutls:p gtk3:p libgcrypt:p libjpeg-turbo:p libnfs:p libpng:p libssh:p libtasn1:p libusb:p lzo2:p nettle:p ninja:p pixman:p pkgconf:p python:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p zstd:p
+
+      - name: restore symlinks
+        run: |
+          export MSYS=winsymlinks:native
+          chmod +x ./restore_symlinks.sh
+          ./restore_symlinks.sh
 
       - name: check if build directory is cached
         run: |
@@ -250,14 +243,6 @@ jobs:
 
           URL=https://github.com/mgood7123/qemu_app/releases/download/storage--qemu--windows--release/build.split.map
           ./split_exe/split.exe --join -r $URL --out BUILD_RELEASE_GCC || true
-        shell: wsl-bash {0}
-
-      - name: check if split program is cached
-        run: |
-          export MSYS=winsymlinks:native
-          chmod +x ./try_get_release.sh
-          ./try_get_release.sh   mgood7123   qemu_app   storage--split--windows   split.exe.tar
-        shell: wsl-bash {0}
 
       # there is no use in caching the build directory since ../configure will cause a full rebuild
       # and we dont know how to detect an already configured/built build directory
@@ -273,7 +258,6 @@ jobs:
           cd BUILD
           ls -l
           ../configure --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
-        shell: wsl-bash {0}
 
       - name: cmake build qemu - Release
         run: |
@@ -284,7 +268,6 @@ jobs:
           ls -l
           cat -n Makefile
           make --trace -j $(nproc)
-        shell: wsl-bash {0}
 
       - name: cmake install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
@@ -294,7 +277,6 @@ jobs:
           #cmake --install BUILD_RELEASE_GCC
           cd qemu/BUILD
           make install
-        shell: wsl-bash {0}
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
@@ -313,13 +295,11 @@ jobs:
           #
           ./split_exe/split.exe --split -r qemu/BUILD/BUILD_ROOT --name rootfs --size 750000000
           ./split_exe/split.exe --split -r qemu/BUILD --name build --size 750000000
-        shell: wsl-bash {0}
 
       - name: list files
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           ls -l
-        shell: wsl-bash {0}
       
       - name: upload build directory
         if: success() # if we cancel during the upload, wait for it to complete
