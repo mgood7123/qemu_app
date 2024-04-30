@@ -181,6 +181,7 @@ jobs:
 
       - name: update packages
         run: |
+          env
           pacman -Sy
 
       - name: check if split program is cached
