@@ -220,36 +220,42 @@ jobs:
       - name: install qemu deps
         run: |
           # https://github.com/qemu/qemu/blob/master/.gitlab-ci.d/windows.yml#L84
+          cd alpine
           ./exe.sh sudo apk add --needed bison flex git
           ./exe.sh sudo apk add make cmake gcc meson autotools ninja python python-sphinx python-sphinx_rtd_theme tools-git angleproject capstone curl cyrus-sasl dtc expat fontconfig freetype fribidi gcc-libs gdk-pixbuf2 gettext glib2 gmp gnutls graphite2 gst-plugins-base gstreamer gtk3 harfbuzz jbigkit lerc libc++ libdatrie libdeflate libepoxy libffi libiconv libidn2 libjpeg-turbo libnfs libpng libpsl libslirp libssh libssh2 libtasn1 libthai libtiff libunistring libunwind libusb libwebp libwinpthread-git lz4 lzo2 nettle openssl opus orc p11-kit pango pixman SDL2 SDL2_image snappy spice usbredir xz zlib zstd brotli bzip2 nghttp2 diffutils grep make sed binutils capstone curl cyrus-sasl dtc gcc glib2 gnutls gtk3 libgcrypt libjpeg-turbo libnfs libpng libssh libtasn1 libusb lzo2 nettle ninja pixman pkgconf python SDL2 SDL2_image snappy spice usbredir zstd
 
       - name: restore symlinks
         run: |
           export MSYS=winsymlinks:native
+          cd alpine
           ./exe.sh chmod +x ./restore_symlinks.sh
           ./exe.sh ./restore_symlinks.sh
 
       - name: configure qemu - Release
         run: |
           export MSYS=winsymlinks:native
+          cd alpine
           ./exe.sh "cd qemu ; mkdir qemu/BUILD || true ; mkdir BUILD/BUILD_ROOT || true"
           ./exe.sh "cd qemu/BUILD ../configure --prefix=\$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx"
 
       - name: build qemu - Release
         run: |
           export MSYS=winsymlinks:native
+          cd alpine
           ./exe.sh "cd qemu/BUILD ; make --trace -j \$(nproc)"
 
       - name: install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
+          cd alpine
           ./exe.sh "cd qemu/BUILD ; make install"
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
+          cd alpine
           ./pull.sh qemu/BUILD/BUILD_ROOT
           ./split_exe/split.exe --split -r BUILD/BUILD_ROOT --name rootfs --size $((1024*1024*500))
 
