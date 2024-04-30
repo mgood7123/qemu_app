@@ -179,10 +179,6 @@ jobs:
           update: true
           path-type: strict
 
-      - name: print env
-        run: |
-          env
-
       - name: update packages
         run: |
           pacman -Sy
@@ -202,113 +198,65 @@ jobs:
 
       - name: install qemu
         run: |
-          pacman -S --noconfirm --needed pactoys sshpass
+          pacman -S --noconfirm --needed pactoys sshpass rsync
           pacboy -S --noconfirm --needed qemu:p qemu-common:p qemu-guest-agent:p qemu-image-util:p
 
       - name: poweron alpine
         run: |
-          #cd alpine
-          #. ./poweron_alpine.sh
+          cd alpine
+          . ./poweron_alpine.sh
 
       - name: copy qemu to alpine
         run: |
-          #cd alpine
-          #./exe.sh mkdir qemu
-          #./push.sh ../CMakeLists.txt qemu
-          #./push.sh ../build_root.cmake qemu
-          #./push.sh ../restore_symlinks.sh qemu
-          #./push.sh ../try_get_release.sh qemu
-          #./push.sh ../split qemu
-          #./push.sh ../qemu qemu
-          #./exe.sh ls -l
-          #./exe.sh ls -l qemu
-
-      - name: powerff alpine
-        run: |
-          #cd alpine
-          #./poweroff_alpine.sh
-
-      - name: see if we got here
-        run: |
-          true
+          cd alpine
+          ./exe.sh mkdir qemu
+          ./push.sh ../CMakeLists.txt qemu
+          ./push.sh ../build_root.cmake qemu
+          ./push.sh ../restore_symlinks.sh qemu
+          ./push.sh ../try_get_release.sh qemu
+          ./push.sh ../split qemu
+          ./push.sh ../qemu qemu
 
       - name: install qemu deps
         run: |
           # https://github.com/qemu/qemu/blob/master/.gitlab-ci.d/windows.yml#L84
-          pacman -S --noconfirm --needed pactoys
-          pacman -S --noconfirm --needed bison flex git
-          pacboy -S --noconfirm --needed make:p cmake:p gcc:p meson:p autotools:p ninja:p python:p python-sphinx:p python-sphinx_rtd_theme:p tools-git:p angleproject:p capstone:p curl:p cyrus-sasl:p dtc:p expat:p fontconfig:p freetype:p fribidi:p gcc-libs:p gdk-pixbuf2:p gettext:p glib2:p gmp:p gnutls:p graphite2:p gst-plugins-base:p gstreamer:p gtk3:p harfbuzz:p jbigkit:p lerc:p libc++:p libdatrie:p libdeflate:p libepoxy:p libffi:p libiconv:p libidn2:p libjpeg-turbo:p libnfs:p libpng:p libpsl:p libslirp:p libssh:p libssh2:p libtasn1:p libthai:p libtiff:p libunistring:p libunwind:p libusb:p libwebp:p libwinpthread-git:p lz4:p lzo2:p nettle:p openssl:p opus:p orc:p p11-kit:p pango:p pixman:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p xz:p zlib:p zstd:p brotli:p bzip2:p nghttp2 diffutils grep make sed:p binutils:p capstone:p curl:p cyrus-sasl:p dtc:p gcc:p glib2:p gnutls:p gtk3:p libgcrypt:p libjpeg-turbo:p libnfs:p libpng:p libssh:p libtasn1:p libusb:p lzo2:p nettle:p ninja:p pixman:p pkgconf:p python:p SDL2:p SDL2_image:p snappy:p spice:p usbredir:p zstd:p
+          ./exe.sh sudo apk add --needed bison flex git
+          ./exe.sh sudo apk add make cmake gcc meson autotools ninja python python-sphinx python-sphinx_rtd_theme tools-git angleproject capstone curl cyrus-sasl dtc expat fontconfig freetype fribidi gcc-libs gdk-pixbuf2 gettext glib2 gmp gnutls graphite2 gst-plugins-base gstreamer gtk3 harfbuzz jbigkit lerc libc++ libdatrie libdeflate libepoxy libffi libiconv libidn2 libjpeg-turbo libnfs libpng libpsl libslirp libssh libssh2 libtasn1 libthai libtiff libunistring libunwind libusb libwebp libwinpthread-git lz4 lzo2 nettle openssl opus orc p11-kit pango pixman SDL2 SDL2_image snappy spice usbredir xz zlib zstd brotli bzip2 nghttp2 diffutils grep make sed binutils capstone curl cyrus-sasl dtc gcc glib2 gnutls gtk3 libgcrypt libjpeg-turbo libnfs libpng libssh libtasn1 libusb lzo2 nettle ninja pixman pkgconf python SDL2 SDL2_image snappy spice usbredir zstd
 
       - name: restore symlinks
         run: |
           export MSYS=winsymlinks:native
-          chmod +x ./restore_symlinks.sh
-          ./restore_symlinks.sh
+          ./exe.sh chmod +x ./restore_symlinks.sh
+          ./exe.sh ./restore_symlinks.sh
 
-      - name: sed version
-        run: |
-          set -v
-          which sed
-          sed --version
-
-      - name: check if build directory is cached
-        run: |
-          #export MSYS=winsymlinks:native
-
-          #URL=https://github.com/mgood7123/qemu_app/releases/download/storage--qemu--windows--release/build.split.map
-          #./split_exe/split.exe --join -r $URL --out BUILD_RELEASE_GCC || true
-
-      # there is no use in caching the build directory since ../configure will cause a full rebuild
-      # and we dont know how to detect an already configured/built build directory
-
-      - name: cmake configure qemu - Release
+      - name: configure qemu - Release
         run: |
           export MSYS=winsymlinks:native
-          #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          #cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-g0 -O3" -DCMAKE_CXX_FLAGS="-g0 -O3" -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_COLOR_MAKEFILE=ON -DCMAKE_VERBOSE_MAKEFILE=TRUE -S . -B BUILD_RELEASE_GCC
-          cd qemu
-          mkdir BUILD || true
-          mkdir BUILD/BUILD_ROOT || true
-          cd BUILD
-          ls -l
-          ../configure --prefix=$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx
+          ./exe.sh "cd qemu ; mkdir qemu/BUILD || true ; mkdir BUILD/BUILD_ROOT || true"
+          ./exe.sh "cd qemu/BUILD ../configure --prefix=\$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx"
 
-      - name: cmake build qemu - Release
+      - name: build qemu - Release
         run: |
           export MSYS=winsymlinks:native
-          #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          #cmake --build BUILD_RELEASE_GCC
-          cd qemu/BUILD
-          ls -l
-          cat -n Makefile
-          make --trace -j $(nproc) V=1 SHELL=bash
+          ./exe.sh "cd qemu/BUILD ; make --trace -j \$(nproc)"
 
-      - name: cmake install qemu - Release
+      - name: install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
-          #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-          #cmake --install BUILD_RELEASE_GCC
-          cd qemu/BUILD
-          make install V=1 SHELL=bash
+          ./exe.sh "cd qemu/BUILD ; make install"
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
+          ./pull.sh qemu/BUILD/BUILD_ROOT
+          ./split_exe/split.exe --split -r BUILD/BUILD_ROOT --name rootfs --size $((1024*1024*500))
 
-          # 750 mb
-          #
-          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC/BUILD_ROOT/ROOTFS --name rootfs --size 750000000
-
-          # 750 mb
-          #
-          #./split_exe/split.exe --split -r BUILD_RELEASE_GCC --name build --size 750000000
-
-          # 750 mb
-          #
-          ./split_exe/split.exe --split -r qemu/BUILD/BUILD_ROOT --name rootfs --size 750000000
-          ./split_exe/split.exe --split -r qemu/BUILD --name build --size 750000000
+      - name: powerff alpine
+        run: |
+          cd alpine
+          ./poweroff_alpine.sh
 
       - name: list files
         if: success() # if we cancel during the upload, wait for it to complete
@@ -329,4 +277,3 @@ jobs:
           removeArtifacts: true
           artifacts: |
             ./rootfs.split.*
-            ./build.split.*
