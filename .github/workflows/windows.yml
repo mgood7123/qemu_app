@@ -179,9 +179,12 @@ jobs:
           update: true
           path-type: strict
 
-      - name: update packages
+      - name: print env
         run: |
           env
+
+      - name: update packages
+        run: |
           pacman -Sy
 
       - name: check if split program is cached
@@ -278,7 +281,7 @@ jobs:
           cd qemu/BUILD
           ls -l
           cat -n Makefile
-          make --trace -j $(nproc) V=1
+          make --trace -j $(nproc) V=1 SHELL=bash
 
       - name: cmake install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
@@ -287,7 +290,7 @@ jobs:
           #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
           #cmake --install BUILD_RELEASE_GCC
           cd qemu/BUILD
-          make install V=1
+          make install V=1 SHELL=bash
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
