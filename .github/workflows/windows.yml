@@ -203,26 +203,26 @@ jobs:
 
       - name: poweron alpine
         run: |
-          cd alpine
-          . ./poweron_alpine.sh
+          #cd alpine
+          #. ./poweron_alpine.sh
 
       - name: copy qemu to alpine
         run: |
-          cd alpine
-          ./exe.sh mkdir qemu
-          ./push.sh ../CMakeLists.txt qemu
-          ./push.sh ../build_root.cmake qemu
-          ./push.sh ../restore_symlinks.sh qemu
-          ./push.sh ../try_get_release.sh qemu
-          ./push.sh ../split qemu
-          ./push.sh ../qemu qemu
-          ./exe.sh ls -l
-          ./exe.sh ls -l qemu
+          #cd alpine
+          #./exe.sh mkdir qemu
+          #./push.sh ../CMakeLists.txt qemu
+          #./push.sh ../build_root.cmake qemu
+          #./push.sh ../restore_symlinks.sh qemu
+          #./push.sh ../try_get_release.sh qemu
+          #./push.sh ../split qemu
+          #./push.sh ../qemu qemu
+          #./exe.sh ls -l
+          #./exe.sh ls -l qemu
 
       - name: powerff alpine
         run: |
-          cd alpine
-          ./poweroff_alpine.sh
+          #cd alpine
+          #./poweroff_alpine.sh
 
       - name: see if we got here
         run: |
@@ -240,6 +240,12 @@ jobs:
           export MSYS=winsymlinks:native
           chmod +x ./restore_symlinks.sh
           ./restore_symlinks.sh
+
+      - name: sed version
+        run: |
+          set -v
+          which sed
+          sed --version
 
       - name: check if build directory is cached
         run: |
