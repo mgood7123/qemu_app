@@ -280,7 +280,7 @@ jobs:
           #export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
           #cmake --install BUILD_RELEASE_GCC
           cd qemu/BUILD
-          make install
+          make install V=1
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
