@@ -300,32 +300,20 @@ jobs:
           export MSYS=winsymlinks:native
           cd alpine
           ./exe.sh "pwd"
-          ./exe.sh "ls -l"
-          ./exe.sh "ls -l qemu"
           ./exe.sh "cd qemu ; chmod +x restore_symlinks.sh"
-          ./exe.sh "ls -l qemu"
-          ./exe.sh "cat qemu/restore_symlinks.sh"
           ./exe.sh "cd qemu ; ./restore_symlinks.sh"
 
       - name: configure qemu - Release
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./exe.sh "ls -l qemu"
-          ./exe.sh "ls -l qemu/qemu"
           ./exe.sh "cd qemu/qemu ; mkdir BUILD ; mkdir BUILD/BUILD_ROOT"
-          ./exe.sh "ls -l qemu"
-          ./exe.sh "ls -l qemu/qemu"
-          ./exe.sh "ls -l qemu/qemu/BUILD"
-          ./exe.sh "cd qemu/qemu/BUILD ; ../configure --prefix=\$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx"
+          ./exe.sh "cd qemu/qemu/BUILD ; ls -l ../configure ; ../configure --prefix=\$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx"
 
       - name: build qemu - Release
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./exe.sh "ls -l qemu"
-          ./exe.sh "ls -l qemu/qemu"
-          ./exe.sh "ls -l qemu/qemu/BUILD"
           ./exe.sh "cd qemu/qemu/BUILD ; make --trace -j \$(nproc)"
 
       - name: install qemu - Release
