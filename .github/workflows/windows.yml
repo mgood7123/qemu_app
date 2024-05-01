@@ -145,9 +145,80 @@ jobs:
 #            ./split.exe.tar
 #            ./split.exe.tar.sha512
 #
-  build_qemu:
-#    needs: msys2_build_split
+  build_xserver:
     needs: should_run
+    # so we can upload releases
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+            sys: MINGW64
+
+    runs-on: ${{ matrix.os }}
+
+    name: build qemu - ${{ matrix.name }}
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{needs.should_run.outputs.output1}}
+          submodules: recursive
+
+      - name: '${{ matrix.icon }} Setup MSYS2'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          path-type: strict
+
+      - name: update packages
+        run: |
+          pacman -Sy
+
+      - name: unpack xserver
+        run: |
+          ./unpackx.sh
+
+      - name: build xserver
+        run: |
+          cd xserver
+          ./make.sh
+
+      - name: archive build directory
+        if: success() # if we cancel during the upload, wait for it to complete
+        run: |
+          export MSYS=winsymlinks:native
+          ./split_exe/split.exe --split -r xserver/BUILD_DEBUG/BUILD_ROOT/ROOTFS --name rootfs --size $((1024*1024*500))
+
+      - name: list files
+        if: success() # if we cancel during the upload, wait for it to complete
+        run: |
+          ls -l
+      
+      - name: upload build directory
+        if: success() # if we cancel during the upload, wait for it to complete
+        uses: "ncipollo/release-action@v1"
+        with:
+          name: "xserver - windows - RELEASE"
+          tag: "storage--xserver--windows--release"
+          makeLatest: true
+          generateReleaseNotes: false
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          replacesArtifacts: true
+          removeArtifacts: true
+          artifacts: |
+            ./rootfs.split.*
+
+  build_qemu:
+    needs: build_xserver
     # so we can upload releases
     permissions:
       contents: write
@@ -269,9 +340,9 @@ jobs:
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./pull.sh qemu/qemu/BUILD/BUILD_ROOT
+          ./pull.sh qemu/qemu/BUILD/BUILD_ROOT/ROOTFS
           cd ..
-          ./split_exe/split.exe --split -r alpine/BUILD_ROOT --name rootfs --size $((1024*1024*500))
+          ./split_exe/split.exe --split -r alpine/ROOTFS --name rootfs --size $((1024*1024*500))
 
       - name: powerff alpine
         run: |
