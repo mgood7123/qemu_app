@@ -209,7 +209,7 @@ jobs:
       - name: copy qemu to alpine
         run: |
           cd alpine
-          ./exe.sh mkdir qemu
+          ./exe.sh "mkdir qemu"
           ./push.sh ../CMakeLists.txt qemu
           ./push.sh ../build_root.cmake qemu
           ./push.sh ../restore_symlinks.sh qemu
