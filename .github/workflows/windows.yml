@@ -190,6 +190,9 @@ jobs:
       - name: unpack xserver
         run: |
           ./unpackx.sh
+          set -v
+          ls -l /clang64/share/aclocal
+          ls -l /clang64/share/aclocal-1.16
 
       - name: build xserver
         run: |
