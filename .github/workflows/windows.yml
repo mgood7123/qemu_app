@@ -242,7 +242,7 @@ jobs:
           cd alpine
           ./exe.sh "ls -l qemu"
           ./exe.sh "ls -l qemu/qemu"
-          ./exe.sh "cd qemu/qemu ; mkdir qemu/BUILD ; mkdir BUILD/BUILD_ROOT"
+          ./exe.sh "cd qemu/qemu ; mkdir BUILD ; mkdir BUILD/BUILD_ROOT"
           ./exe.sh "ls -l qemu"
           ./exe.sh "ls -l qemu/qemu"
           ./exe.sh "ls -l qemu/qemu/BUILD"
