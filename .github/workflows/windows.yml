@@ -228,40 +228,40 @@ jobs:
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./exe.sh bash -c "pwd"
-          ./exe.sh bash -c "ls -l"
-          ./exe.sh bash -c "ls -l qemu"
-          ./exe.sh bash -c "cd qemu ; chmod +x restore_symlinks.sh"
-          ./exe.sh bash -c "ls -l qemu"
-          ./exe.sh bash -c "cd qemu ; ./restore_symlinks.sh"
+          ./exe.sh "pwd"
+          ./exe.sh "ls -l"
+          ./exe.sh "ls -l qemu"
+          ./exe.sh "cd qemu ; chmod +x restore_symlinks.sh"
+          ./exe.sh "ls -l qemu"
+          ./exe.sh "cd qemu ; ./restore_symlinks.sh"
 
       - name: configure qemu - Release
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./exe.sh bash -c "ls -l qemu"
-          ./exe.sh bash -c "ls -l qemu/qemu"
-          ./exe.sh bash -c "cd qemu/qemu ; mkdir qemu/BUILD ; mkdir BUILD/BUILD_ROOT
-          ./exe.sh bash -c "ls -l qemu"
-          ./exe.sh bash -c "ls -l qemu/qemu"
-          ./exe.sh bash -c "ls -l qemu/qemu/BUILD"
-          ./exe.sh bash -c "cd qemu/qemu/BUILD ; ../configure --prefix=\$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx"
+          ./exe.sh "ls -l qemu"
+          ./exe.sh "ls -l qemu/qemu"
+          ./exe.sh "cd qemu/qemu ; mkdir qemu/BUILD ; mkdir BUILD/BUILD_ROOT"
+          ./exe.sh "ls -l qemu"
+          ./exe.sh "ls -l qemu/qemu"
+          ./exe.sh "ls -l qemu/qemu/BUILD"
+          ./exe.sh "cd qemu/qemu/BUILD ; ../configure --prefix=\$(pwd)/BUILD_ROOT --enable-sdl --enable-gtk --disable-user --target-list=x86_64-softmmu --enable-whpx"
 
       - name: build qemu - Release
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./exe.sh bash -c "ls -l qemu"
-          ./exe.sh bash -c "ls -l qemu/qemu"
-          ./exe.sh bash -c "ls -l qemu/qemu/BUILD"
-          ./exe.sh bash -c "cd qemu/qemu/BUILD ; make --trace -j \$(nproc)"
+          ./exe.sh "ls -l qemu"
+          ./exe.sh "ls -l qemu/qemu"
+          ./exe.sh "ls -l qemu/qemu/BUILD"
+          ./exe.sh "cd qemu/qemu/BUILD ; make --trace -j \$(nproc)"
 
       - name: install qemu - Release
         if: success() # if we cancel during the upload, wait for it to complete
         run: |
           export MSYS=winsymlinks:native
           cd alpine
-          ./exe.sh bash -c "cd qemu/qemu/BUILD ; make install"
+          ./exe.sh "cd qemu/qemu/BUILD ; make install"
 
       - name: archive build directory
         if: success() # if we cancel during the upload, wait for it to complete
