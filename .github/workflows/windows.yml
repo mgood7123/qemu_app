@@ -184,7 +184,7 @@ jobs:
 
       - name: install packages
         run: |
-          pacman -S --needed --noconfirm pacboy
+          pacman -S --needed --noconfirm pactoys
           pacboy -S --needed --noconfirm cmake:p make:p clang:p
 
       - name: unpack xserver
