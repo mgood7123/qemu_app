@@ -233,6 +233,7 @@ jobs:
           ./exe.sh "ls -l qemu"
           ./exe.sh "cd qemu ; chmod +x restore_symlinks.sh"
           ./exe.sh "ls -l qemu"
+          ./exe.sh "cat qemu/restore_symlinks.sh"
           ./exe.sh "cd qemu ; ./restore_symlinks.sh"
 
       - name: configure qemu - Release
