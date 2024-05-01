@@ -162,7 +162,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    name: build qemu - ${{ matrix.name }}
+    name: build xserver - ${{ matrix.name }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -181,6 +181,11 @@ jobs:
       - name: update packages
         run: |
           pacman -Sy
+
+      - name: install packages
+        run: |
+          pacman -S --needed --noconfirm pacboy
+          pacboy -S --needed --noconfirm cmake:p make:p clang:p
 
       - name: unpack xserver
         run: |
