@@ -185,7 +185,7 @@ jobs:
       - name: install packages
         run: |
           pacman -S --needed --noconfirm pactoys autotools pkgconf texinfo texinfo-tex xmlto gettext m4 groff gperf
-          pacboy -S --needed --noconfirm cmake:p make:p clang:p autotools:p pkgconf:p gperf:p
+          pacboy -S --needed --noconfirm cmake:p make:p clang:p autotools:p pkgconf:p gperf:p python:p
 
       - name: unpack xserver
         run: |
